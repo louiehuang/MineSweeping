@@ -11,15 +11,19 @@ namespace MyMine
 {
     public partial class FormMain : Form
     {
-        const int MineBlockLength = 20; //雷块的边长
+        const int MineBlockLength = 16; //雷块的边长
+        int currentTime = 0; //游戏开始用时
 
         const int MaxNumPerRow = 64;   // 一行最多雷块数量
         const int MaxNumPerColumn = 32;  // 一列最多雷块数量
 
-        int[] px = new int[] { 1, -1, 0, 0, 1, -1, 1, -1 };   // 四方向x坐标偏移量
-        int[] py = new int[] { 0, 0, 1, -1, 1, 1, -1, -1 };   // 四方向y坐标偏移量
+        //int[] px = new int[] { 1, -1, 0, 0, 1, -1, 1, -1 };   // 四方向x坐标偏移量
+        //int[] py = new int[] { 0, 0, 1, -1, 1, 1, -1, -1 };   // 四方向y坐标偏移量
 
-        List<Direction> directions = new List<Direction>();
+        int[] px = new int[] { -1, -1, -1, 0, 0, 1, 1, 1 };   // 四方向x坐标偏移量
+        int[] py = new int[] { -1, 0, 1, -1, 1, -1, 0, 1 };   // 四方向y坐标偏移量
+
+        List<Direction> directions = new List<Direction>(); //拓展的八个方向
         
 
         public int nWidth;     // 表示雷区的宽度
@@ -42,6 +46,7 @@ namespace MyMine
 
             this.DoubleBuffered = true; // 开启双缓冲
 
+            pictureBox2.Image = imageList_num.Images[1];
             // 初始化游戏参数
             nWidth = Properties.Settings.Default.Width;
             nHeight = Properties.Settings.Default.Height;
@@ -51,7 +56,7 @@ namespace MyMine
             {
                 for (int j = 0; j < MaxNumPerRow; j++)
                 {
-                    mineBlock[i, j] = new MineBlock();
+                    mineBlock[i, j] = new MineBlock(i, j);
                     mineBlock[i, j].MineNum = 0;
                     mineBlock[i, j].Status = 0;
                     mineBlock[i, j].IsHover = false;
@@ -112,11 +117,15 @@ namespace MyMine
         {
             int nOffsetX = this.Width - this.ClientSize.Width;  // 包含了窗口标题栏以及上下边框的高度,6
             int nOffsetY = this.Height - this.ClientSize.Height;    // 包含了左右边框的宽度,29
-            //int nAdditionY = MenuStrip_Main.Height + TableLayoutPanel_Main.Height;  // 包含了菜单栏以及下方显示信息栏的高度
-            int nAdditionY = MenuStrip_Main.Height;  // 包含了菜单栏以及下方显示信息栏的高度
+
+            int nAdditionY = MenuStrip_Main.Height + tableLayoutPanel_header.Height;  // 包含了菜单栏以及下方显示信息栏的高度
+
+            // MessageBox.Show(nAdditionY.ToString()); //65
 
             this.Width = 12 + MineBlockLength * nWidth + nOffsetX;   // 设置窗口高度，MineBlockLength为每个雷区的高度，12为上下总空隙（6px+6px），再加上偏移量
             this.Height = 12 + MineBlockLength * nHeight + nAdditionY + nOffsetY;    // 设置窗口宽度，同理
+
+            //MessageBox.Show(Width.ToString() + "---" + Height.ToString()); //178,266 (178,226，panel---40)
 
             开局NToolStripMenuItem_Click(new object(), new EventArgs()); // 调用新建游戏函数
 
@@ -129,6 +138,7 @@ namespace MyMine
         private void SetGameBeginner()
         {
             SetGame(10, 10, 10);
+            pictureBox2.Image = imageList_num.Images[1];
         }
 
         /// <summary>
@@ -137,6 +147,7 @@ namespace MyMine
         private void SetGameIntermediate()
         {
             SetGame(16, 16, 40);
+            pictureBox2.Image = imageList_num.Images[4];
         }
 
         /// <summary>
@@ -145,6 +156,8 @@ namespace MyMine
         private void SetGameExpert()
         {
             SetGame(30, 16, 99);
+            pictureBox2.Image = imageList_num.Images[9];
+            pictureBox3.Image = imageList_num.Images[9];
         }
 
         /// <summary>
@@ -204,7 +217,9 @@ namespace MyMine
             g.Clear(Color.White);   // 清空绘图区
             // 我们需要是雷区在用户显示的区域上下左右保持6px的偏移量，使得整体看起来更加协调
             int nOffsetX = 6;   // X方向偏移量
-            int nOffsetY = 6 + MenuStrip_Main.Height;   // Y方向偏移量
+
+            int nOffsetY = 6 + MenuStrip_Main.Height + tableLayoutPanel_header.Height;   // Y方向偏移量
+
             int length = MineBlockLength - 2;
             for (int i = 1; i <= nWidth; i++)    // 绘制行
             {
@@ -221,16 +236,16 @@ namespace MyMine
                         // 绘制背景
                         if (i == MouseFocus.X && j == MouseFocus.Y)  // 是否为高亮点
                         {
-                            g.FillRectangle(new SolidBrush(Color.FromArgb(100, Color.DarkGray)), new Rectangle(nOffsetX + MineBlockLength * (i - 1) + 1, nOffsetY + MineBlockLength * (j - 1) + 1, 18, 18));
+                            g.FillRectangle(new SolidBrush(Color.FromArgb(100, Color.DarkGray)), new Rectangle(nOffsetX + MineBlockLength * (i - 1) + 1, nOffsetY + MineBlockLength * (j - 1) + 1, length, length));
                         }
                         else
                         {
-                            g.FillRectangle(Brushes.DarkGray, new Rectangle(nOffsetX + MineBlockLength * (i - 1) + 1, nOffsetY + MineBlockLength * (j - 1) + 1, 18, 18));   // 绘制雷区方块
+                            g.FillRectangle(Brushes.DarkGray, new Rectangle(nOffsetX + MineBlockLength * (i - 1) + 1, nOffsetY + MineBlockLength * (j - 1) + 1, length, length));   // 绘制雷区方块
                         }
                         // 绘制标记
                         if (mineBlock[i, j].Status == 2)
                         {
-                            g.DrawImage(Properties.Resources.Flag, nOffsetX + MineBlockLength * (i - 1), nOffsetY + MineBlockLength * (j - 1));   // 绘制红旗
+                            g.DrawImage(Properties.Resources.mark, nOffsetX + MineBlockLength * (i - 1), nOffsetY + MineBlockLength * (j - 1));   // 绘制红旗
                         }
                         if (mineBlock[i, j].Status == 3)
                         {
@@ -278,6 +293,7 @@ namespace MyMine
             nWidth = 10; nHeight = 10; nMineCnt = 10;
             SelectLevel();
             UpdateSize();
+            pictureBox2.Image = imageList_num.Images[1];
         }
 
         private void 中级IToolStripMenuItem_Click(object sender, EventArgs e)
@@ -285,6 +301,7 @@ namespace MyMine
             nWidth = 16; nHeight = 16; nMineCnt = 40;
             SelectLevel();
             UpdateSize();
+            pictureBox2.Image = imageList_num.Images[4];
         }
 
         private void 高级EToolStripMenuItem_Click(object sender, EventArgs e)
@@ -292,6 +309,8 @@ namespace MyMine
             nWidth = 30; nHeight = 16; nMineCnt = 99;
             SelectLevel();
             UpdateSize();
+            pictureBox2.Image = imageList_num.Images[9];
+            pictureBox3.Image = imageList_num.Images[9];
         }
 
         private void 设置SToolStripMenuItem_Click(object sender, EventArgs e)
@@ -307,7 +326,7 @@ namespace MyMine
             {
                 for (int j = 0; j <= nWidth + 1; j++)
                 {
-                    mineBlock[i, j] = new MineBlock();
+                    mineBlock[i, j] = new MineBlock(i, j);
                     mineBlock[i, j].MineNum = 0;
                     mineBlock[i, j].Status = 0;
                     mineBlock[i, j].IsHover = false;
@@ -326,10 +345,7 @@ namespace MyMine
                     // 随机地雷坐标(x, y)
                     int x = Rand.Next(nWidth) + 1;
                     int y = Rand.Next(nHeight) + 1;
-                    //if (pMine[x, y] != -1)
-                    //{
-                    //    pMine[x, y] = -1; i++;
-                    //}
+
                     if (mineBlock[x, y].MineNum != -1) //直到找到不是雷的区域（后面random的可能和前面重合，排重），将其置为雷
                     {
                         mineBlock[x, y].MineNum = -1; i++;
@@ -364,13 +380,18 @@ namespace MyMine
             {
                 MessageBox.Show("2." + ex.Message);
             }
+
+            this.Refresh();
+
+            //timer1.Enabled = true;
+
         }
 
         private void FormMain_MouseMove(object sender, MouseEventArgs e)
         {
             if (e.X < 6 || e.X > 6 + nWidth * MineBlockLength ||
-                e.Y < 6 + MenuStrip_Main.Height ||
-                e.Y > 6 + MenuStrip_Main.Height + nHeight * MineBlockLength) // 不在地雷区域
+                e.Y < 6 + MenuStrip_Main.Height + tableLayoutPanel_header.Height ||
+                e.Y > 6 + MenuStrip_Main.Height + tableLayoutPanel_header.Height + nHeight * MineBlockLength) // 不在地雷区域
             {
                 MouseFocus.X = 0; MouseFocus.Y = 0;
             }
@@ -378,7 +399,7 @@ namespace MyMine
             {
                 //获取鼠标悬浮区所在的位置（第y行第x列，如第一个则为第1行第1列）
                 int x = (e.X - 6) / MineBlockLength + 1; // 获取x位置
-                int y = (e.Y - MenuStrip_Main.Height - 6) / MineBlockLength + 1; // 获取y位置
+                int y = (e.Y - MenuStrip_Main.Height - tableLayoutPanel_header.Height - 6) / MineBlockLength + 1; // 获取y位置
                 MouseFocus.X = x; MouseFocus.Y = y; // 设置当前高亮点
             }
             this.Refresh();    // 重绘雷区
@@ -414,7 +435,7 @@ namespace MyMine
                 {
                     if (mineBlock[MouseFocus.X, MouseFocus.Y].Status == 0) //未打开
                     {
-                        dfs(MouseFocus.X, MouseFocus.Y);
+                        bfs(MouseFocus.X, MouseFocus.Y);
                     }
                 }
                 else
@@ -448,51 +469,78 @@ namespace MyMine
 
         }
 
-
-        private void dfs(int sx, int sy)
+        /// <summary>
+        /// 广度优先搜索被点击雷块周围的雷数
+        /// </summary>
+        /// <param name="sx"></param>
+        /// <param name="sy"></param>
+        private void bfs(int sx, int sy)
         {
-            mineBlock[sx, sy].Status = 1; // 访问该点
-            for (int i = 0; i < 8; i++)
+            //设置雷块类，队列放入这种类型，广度优先搜索
+            //设置雷块的横纵坐标位置，每次从队列中取出结点后依据其位置向八个方向拓展
+
+            Queue<MineBlock> queue = new Queue<MineBlock>();
+            //将(sx,sy)对应的雷块入队列
+            mineBlock[sx, sy].Visited = true;
+            mineBlock[sx, sy].Status = 1;
+            queue.Enqueue(mineBlock[sx, sy]);
+
+            while (queue.Count > 0)
             {
-                // 获取相邻点的坐标
-                int x = sx + px[i];
-                int y = sy + py[i];
-                if (x >= 1 && x <= nWidth && y >= 1 && y <= nHeight &&
-                    mineBlock[x, y].MineNum != -1 && mineBlock[sx, sy].MineNum == 0 &&
-                    (mineBlock[x, y].Status == 0 || mineBlock[x, y].Status == 3)) // 不是地雷，处于地雷区域，且未点开，或者标记为问号
+
+                MineBlock block = queue.Dequeue(); //取队首结点
+
+                for (int i = 0; i < 8; i++)
                 {
-                    dfs(x, y);  // 访问该点
+                    // 获取相邻点的坐标
+                    int x = block.X + px[i];
+                    int y = block.Y + py[i];
+                    if (x >= 1 && x <= nWidth && y >= 1 && y <= nHeight &&
+                        mineBlock[x, y].MineNum != -1 && mineBlock[block.X, block.Y].MineNum == 0 &&
+                        (mineBlock[x, y].Status == 0 || mineBlock[x, y].Status == 3) &&
+                        mineBlock[x, y].Visited == false) //未访问，则加入队列
+                    {
+                        queue.Enqueue(mineBlock[x, y]);
+                        mineBlock[x, y].Visited = true;
+                        mineBlock[x, y].Status = 1;
+                    }
                 }
             }
+
         }
 
 
-        //private void dfs(int sx, int sy)
-        //{
-        //    //设置雷块类，队列放入这种类型，广度优先搜索
+        private void timer1_Tick(object sender, EventArgs e)
+        {
+            currentTime++;
 
-        //    //创建一个队列 
-        //    Queue<Vertex<T>> queue = newQueue<Vertex<T>>();
-        //    Console.Write(v.data + "");//访问 
-        //    v.visited = true;//设置访问标志
-        //    queue.Enqueue(v);//进队 
-        //    while (queue.Count > 0)//只要队不为空就循环 
-        //    {
-        //        Vertex<T> w = queue.Dequeue();
-        //        Nodenode = w.firstEdge;
-        //        while (node != null)//访问此顶点的所有邻接点 
-        //        {　//如果邻接点未被访问，则递归访问它的边
-        //            if (!node.adjvex.visited)
-        //            {
-        //                Console.Write(node.adjvex.data + "");//访问
-        //                node.adjvex.visited = true;//设置访问标志
-        //                queue.Enqueue(node.adjvex);//进队 
-        //            }
-        //            node = node.next;//访问下一个邻接点
-        //        }
-        //    }
+            int newTens = currentTime;
+            //需要保证用于计算的时间小于100，否则会超出索引，如112，则十位为11，超过了0~9的数字索引
+            //计算十位时将112转为12，则可以正确显示
+            while (newTens > 100)
+            {
+                newTens -= 100;
+            }
 
-        //}
+            int hundreds = currentTime;
+            //同理应保证百位不超过数字imgaeList索引
+            while (hundreds > 1000)
+            {
+                hundreds -= 1000;
+            }
+
+            pb_units.Image = imageList_num.Images[currentTime % 10];
+            pb_tens.Image = imageList_num.Images[newTens / 10];
+            pb_hundreds.Image = imageList_num.Images[hundreds / 100];
+
+
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            开局NToolStripMenuItem_Click(new object(), new EventArgs()); // 调用新建游戏函数
+        }
+
 
 
 

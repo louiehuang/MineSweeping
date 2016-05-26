@@ -11,6 +11,36 @@ namespace MyMine
     class MineBlock
     {
         /// <summary>
+        /// 横坐标位置
+        /// </summary>
+        private int _x;
+        public int X
+        {
+            get { return _x; }
+            set { _x = value; }
+        }
+
+        /// <summary>
+        /// 纵坐标位置
+        /// </summary>
+        private int _y;
+        public int Y
+        {
+            get { return _y; }
+            set { _y = value; }
+        }
+
+        public MineBlock()
+        { 
+        }
+
+        public MineBlock(int x, int y)
+        {
+            this.X = x;
+            this.Y = y;
+        }
+
+        /// <summary>
         /// 雷的个数，-1表示此雷块有雷，0表示没有，1~8表示其周围的雷数
         /// </summary>
         private int _mineNum;
@@ -40,7 +70,15 @@ namespace MyMine
             set { _isHover = value; }
         }
 
-
+        /// <summary>
+        /// 表示此块是否被访问过（广度优先搜索时使用）
+        /// </summary>
+        private bool _visited;
+        public bool Visited
+        {
+            get { return _visited; }
+            set { _visited = value; }
+        }
 
 
     }

@@ -80,7 +80,9 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <None Include="Res\-.png" />
+  </ItemGroup>
   <ItemGroup>
     <None Include="Res\Flag.png" />
   </ItemGroup>
@@ -89,6 +91,45 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Res\Doubt.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Res\0.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Res\1.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Res\2.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Res\3.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Res\4.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Res\5.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Res\6.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Res\7.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Res\8.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Res\9.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Res\face_normal.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Res\markFlag.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Res\mark.jpg" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
